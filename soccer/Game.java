@@ -16,7 +16,6 @@ public class Game {
         int goalCount = maxGoals;
         while(true) {
             goalCount = (int) (Math.random() * maxGoals) + 1;
-            System.out.println("Goal count = " + goalCount);
             if(goalCount > 0 && goalCount <= maxGoals) {
                 break;
             }
@@ -30,12 +29,54 @@ public class Game {
         playGame(6);
     }
     
-    public void printStatistics() {
-        System.out.println("Goal length = " + goals.length);
+    public String getStatistics() {
+        int homeTeamGoals = 0;
+        int awayTeamGoals = 0;
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append(homeTeam.getName())
+          .append(" vs. ")
+          .append(awayTeam.getName())
+          .append("\n");
+        
         for(Goal goal : goals) {
-            System.out.println("Goal scored after " + goal.getTime() + " mins by " + 
-                    goal.getPlayer().getName() + " of the " + goal.getTeam().getName());
+            if(goal.getTeam() == homeTeam) {
+                homeTeamGoals++;
+                homeTeam.increaseGoalsScored();
+            } else {
+                awayTeamGoals++;
+                awayTeam.increaseGoalsScored();
+            }
+            
+            sb.append("Goal scored after ")
+              .append(goal.getTime())
+              .append(" mins by ")
+              .append(goal.getPlayer().getName())
+              .append(" of the ")
+              .append(goal.getTeam().getName())
+              .append("\n");
         }
+        
+        if(homeTeamGoals == awayTeamGoals) {
+            sb.append("It's a draw!");
+            homeTeam.increaseScore(1);
+            awayTeam.increaseScore(1);
+        } else if(homeTeamGoals > awayTeamGoals) {
+            sb.append(homeTeam.getName()).append(" win");
+            homeTeam.increaseScore(2);
+        } else {
+            sb.append(awayTeam.getName()).append(" win");
+            awayTeam.increaseScore(2);
+        }
+        
+        sb.append(" (")
+          .append(homeTeamGoals)
+          .append(" - ")
+          .append(awayTeamGoals)
+          .append(")")
+          .append("\n");
+        
+        return sb.toString();
     }
     
     public Team getHomeTeam() {

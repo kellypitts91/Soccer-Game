@@ -1,5 +1,16 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package soccer;
 
+import java.util.ArrayList;
+
+/**
+ *
+ * @author oracle
+ */
 public class League {
     public static void main(String[] args) {
         League league = new League();
@@ -8,19 +19,11 @@ public class League {
         Game[] games = getGames(teams);
         
         System.out.println("Teams:");
-        for(Team team : teams) {
-            System.out.println(team.getName());
-            for(Player player : team.getPlayers()) {
-                String[] name = player.getName().split(" ");
-                System.out.println(name[1] + ", " + name[0]);
-            }
-            System.out.println("");
-        }
-        
         for(Game game : games) {
             game.playGame();
-            game.printStatistics();
+            System.out.println(game.getStatistics());
         }
+        league.showBestTeam(teams);
     }
     
     private static Team[] getTeams() {
@@ -46,6 +49,47 @@ public class League {
     }
     
     private static Game[] getGames(Team[] teams) {
-        return new Game[] {new Game(teams[0], teams[1])};
+        Game[] games = new Game[4];
+        for(int i = 0; i < 4; i++) {
+            Team homeTeam = getRandomTeam(teams);
+            Team awayTeam = getRandomTeam(teams);
+            while(homeTeam.getName().equals(awayTeam.getName())) {
+                awayTeam = getRandomTeam(teams);
+            }
+            
+            games[i] = new Game(homeTeam, awayTeam);
+        }
+        
+        return games;
     }
+    
+    private static Team getRandomTeam(Team[] teams) {
+        int length = teams.length;
+        int index = 0;
+        while(true) {
+            index = (int) (Math.random() * length);
+            if(index >= 0 && index < length) {
+                break;
+            }
+        }
+        return teams[index];
+    }
+    
+    public void showBestTeam(Team[] teams) {
+        Team bestTeam = teams[0];
+        System.out.println("\nTeam Points");
+        
+        for(Team team: teams) {
+            System.out.println(team.getName() + ": " + team.getScore() + " : " + team.getGoalsScored());
+            if(team.getScore() > bestTeam.getScore()) {
+                bestTeam = team;
+            } else if(team.getScore() == bestTeam.getScore()) {
+                if(team.getGoalsScored() > bestTeam.getGoalsScored()) {
+                    bestTeam = team;
+                }
+            }
+        }
+        
+        System.out.println("This year's champions are: " + bestTeam.getName());
+    }    
 }
