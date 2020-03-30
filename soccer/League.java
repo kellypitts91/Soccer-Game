@@ -6,12 +6,20 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
 import utility.PlayerDatabase;
+import utility.PlayerDatabaseException;
 
 public class League {
     public static void main(String[] args) {
         League league = new League();
         
-        Team[] teams = league.createTeams(new String[]{"Blues", "Reds", "Greens"}, 5);
+        Team[] teams = null;
+        try {
+            teams = league.createTeams(new String[]{"Blues", "Reds", "Greens"}, 20);
+        } catch(PlayerDatabaseException e) {
+            e.printStackTrace();
+        }
+        if(teams == null) return;
+        
         ArrayList<Game> games = league.createGames(teams);
         
         System.out.println(league.getLeagueAnnouncment(games));
@@ -24,11 +32,15 @@ public class League {
         league.showBestTeam(teams);
     }
     
-    private Team[] createTeams(String[] teamNames, int numberOfPlayers) {
+    private Team[] createTeams(String[] teamNames, int numberOfPlayers) throws PlayerDatabaseException {
         PlayerDatabase playerDatabase = new PlayerDatabase();
         Team[] teams = new Team[teamNames.length];
-        for(int i = 0; i < teamNames.length; i++) {
-            teams[i] = new Team(teamNames[i], playerDatabase.getTeam(numberOfPlayers));
+        try {
+            for(int i = 0; i < teamNames.length; i++) {
+                teams[i] = new Team(teamNames[i], playerDatabase.getTeam(numberOfPlayers));
+            }
+        } catch(IndexOutOfBoundsException e) {
+            throw new PlayerDatabaseException("Not enough players to create a team of " + numberOfPlayers + " players");
         }
         
         return teams;
