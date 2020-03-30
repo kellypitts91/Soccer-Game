@@ -1,95 +1,82 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package soccer;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.ArrayList;
+import java.util.Arrays;
+import utility.PlayerDatabase;
 
-/**
- *
- * @author oracle
- */
 public class League {
     public static void main(String[] args) {
         League league = new League();
         
-        Team[] teams = getTeams();
-        Game[] games = getGames(teams);
+        Team[] teams = league.createTeams(new String[]{"Blues", "Reds", "Greens"}, 5);
+        ArrayList<Game> games = league.createGames(teams);
         
+        System.out.println(league.getLeagueAnnouncment(games));
+        System.out.println("");
         System.out.println("Teams:");
         for(Game game : games) {
             game.playGame();
-            System.out.println(game.getStatistics());
+            System.out.println(game.getDescription());
         }
         league.showBestTeam(teams);
     }
     
-    private static Team[] getTeams() {
-        Player[] homeTeamPlayers = new Player[11];
-        String[] homePlayerNames = {"Fred Smith", "Harry Brown", "John Johnson", 
-            "Joe Parker", "Mark Smith", "Jake Michaelson", "Ted Brown", "Bob Builder", 
-            "David Beckham", "Mike Mackintosh", "Ravi Singh"};
-        
-        for(int i = 0; i < homeTeamPlayers.length; i++) {
-            homeTeamPlayers[i] = new Player(homePlayerNames[i]);
+    private Team[] createTeams(String[] teamNames, int numberOfPlayers) {
+        PlayerDatabase playerDatabase = new PlayerDatabase();
+        Team[] teams = new Team[teamNames.length];
+        for(int i = 0; i < teamNames.length; i++) {
+            teams[i] = new Team(teamNames[i], playerDatabase.getTeam(numberOfPlayers));
         }
         
-        Player[] awayTeamPlayers = new Player[11];
-        String[] awayPlayerNames = {"Martin Hendrix", "Brian Cosby", "Hemant Sharma", 
-            "Deepak Sharma", "Steve Sabatini", "Simon Twopie", "Matthew Croxley", 
-            "Ray Kelly", "Nathan Meyers", "Harry Potter", "Ron Wesley"};
-        
-        for(int i = 0; i < awayTeamPlayers.length; i++) {
-            awayTeamPlayers[i] = new Player(awayPlayerNames[i]);
-        }
-        
-        return new Team[]{new Team("Reds", homeTeamPlayers), new Team("Blues", awayTeamPlayers)};
+        return teams;
     }
     
-    private static Game[] getGames(Team[] teams) {
-        Game[] games = new Game[4];
-        for(int i = 0; i < 4; i++) {
-            Team homeTeam = getRandomTeam(teams);
-            Team awayTeam = getRandomTeam(teams);
-            while(homeTeam.getName().equals(awayTeam.getName())) {
-                awayTeam = getRandomTeam(teams);
+    private ArrayList<Game> createGames(Team[] teams) {
+        LocalDateTime startDate = LocalDateTime.now();
+        ArrayList<Game> games = new ArrayList<>();
+        for (Team homeTeam : teams) {
+            for (Team awayTeam : teams) {
+                if (homeTeam != awayTeam) {
+                    games.add(new Game(homeTeam, awayTeam, startDate));
+                    startDate = startDate.plusDays(7);
+                }
             }
-            
-            games[i] = new Game(homeTeam, awayTeam);
-        }
-        
+        }        
         return games;
     }
     
-    private static Team getRandomTeam(Team[] teams) {
-        int length = teams.length;
-        int index = 0;
-        while(true) {
-            index = (int) (Math.random() * length);
-            if(index >= 0 && index < length) {
-                break;
-            }
-        }
-        return teams[index];
-    }
-    
     public void showBestTeam(Team[] teams) {
-        Team bestTeam = teams[0];
+        Arrays.sort(teams);
+        ArrayList<Team> bestTeams = new ArrayList<>();
         System.out.println("\nTeam Points");
+        int highestScore = teams[0].getScore();
         
-        for(Team team: teams) {
+        for(Team team : teams) {
             System.out.println(team.getName() + ": " + team.getScore() + " : " + team.getGoalsScored());
-            if(team.getScore() > bestTeam.getScore()) {
-                bestTeam = team;
-            } else if(team.getScore() == bestTeam.getScore()) {
-                if(team.getGoalsScored() > bestTeam.getGoalsScored()) {
-                    bestTeam = team;
-                }
+            if(teams[0].compareTo(team) == 0) {
+                bestTeams.add(team);
             }
         }
         
-        System.out.println("This year's champions are: " + bestTeam.getName());
-    }    
+        System.out.print("This year's champions are: ");
+        for(int i = 0; i < bestTeams.size(); i++) {
+            if(i == bestTeams.size()-1) {
+                System.out.print(bestTeams.get(i).getName() + "!");
+            } else {
+                System.out.print(bestTeams.get(i).getName() + ", ");                
+            }
+        }
+        System.out.println("");
+    }   
+    
+    public String getLeagueAnnouncment(ArrayList<Game> games) {
+        LocalDate startDate = games.get(0).getStartDate().toLocalDate();
+        LocalDate endDate = games.get(games.size()-1).getStartDate().toLocalDate();
+        Period between = Period.between(startDate, endDate);
+        return "The legue is scheduled to run for " + between.getMonths() + 
+                " month(s), and " + between.getDays() + " day(s)";
+    }
 }
